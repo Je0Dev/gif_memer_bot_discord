@@ -5,7 +5,7 @@
 <form method="POST">
     <div class="form-group">
         <label for="daily_memes">
-            <input type="checkbox" id="daily_memes" name="daily_memes" {% if settings and settings.get('daily_memes') %}checked{% endif %}>
+            <input type="checkbox" id="daily_memes" name="daily_memes" {% if settings and settings.get('daily_memes', False) %}checked{% endif %}>
             Enable Daily Memes
         </label>
     </div>
