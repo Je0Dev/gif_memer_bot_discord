@@ -14,7 +14,7 @@
         <select id="target_channel" name="target_channel">
             <option value="">None</option>
             {% for channel in channels %}
-            <option value="{{ channel.id }}" {% if settings.target_channel_id == channel.id %}selected{% endif %}>
+            <option value="{{ channel.id }}" {% if settings.target_channel_id|int == channel.id|int %}selected{% endif %}>
                 #{{ channel.name }}
             </option>
             {% endfor %}
