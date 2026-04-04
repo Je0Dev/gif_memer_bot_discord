@@ -3,11 +3,11 @@ from discord.ext import commands
 import aiohttp
 import os
 import random
+import logging
 
 class Memes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tenor_key = os.getenv("TENOR_API_KEY")
 
     @commands.hybrid_command(name="meme", description="Fetch a random meme from Reddit")
     async def meme(self, ctx: commands.Context):
@@ -24,24 +24,59 @@ class Memes(commands.Cog):
 
     @commands.hybrid_command(name="gif", description="Fetch a random or trending GIF")
     async def gif(self, ctx: commands.Context, *, query: str = "trending"):
-        if not self.tenor_key:
-            await ctx.send("⚠️ Tenor API key is not configured.")
+        klipy_key = os.getenv("KLIPY_API_KEY")
+        giphy_key = os.getenv("GIPHY_API_KEY")
+        
+        if not klipy_key and not giphy_key:
+            await ctx.send("⚠️ No GIF API keys configured.", ephemeral=True)
             return
 
-        url = f"https://g.tenor.com/v1/search?q={query}&key={self.tenor_key}&limit=10"
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data["results"]:
-                        gif = random.choice(data["results"])
-                        embed = discord.Embed(title=gif["title"], color=discord.Color.random())
-                        embed.set_image(url=gif["media"][0]["gif"]["url"])
-                        await ctx.send(embed=embed)
-                    else:
-                        await ctx.send("🔍 No GIFs found for that query.")
-                else:
-                    await ctx.send("❌ Failed to fetch GIF. Please check the API key or try again.")
+            # Try Klipy first
+            if klipy_key:
+                try:
+                    klipy_url = "https://api.klipy.com/v1/gifs/search"
+                    async with session.get(klipy_url, params={"api_key": klipy_key, "q": query, "limit": 10}) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            results = data.get("data", [])
+                            if results:
+                                gif = random.choice(results)
+                                embed = discord.Embed(title=gif.get("title", "GIF"), color=discord.Color.random())
+                                img_url = gif.get("url") or gif.get("images", {}).get("original", {}).get("url")
+                                if img_url:
+                                    embed.set_image(url=img_url)
+                                    embed.set_footer(text="Source: Klipy")
+                                    await ctx.send(embed=embed)
+                                    logging.info("GIF fetched via Klipy")
+                                    return
+                        logging.info(f"Klipy failed or returned no results (Status: {resp.status}), falling back to Giphy")
+                except Exception as e:
+                    logging.info(f"Klipy request failed: {e}, falling back to Giphy")
+
+            # Try Giphy
+            if giphy_key:
+                try:
+                    giphy_url = "https://api.giphy.com/v1/gifs/search"
+                    async with session.get(giphy_url, params={"api_key": giphy_key, "q": query, "limit": 10}) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            results = data.get("data", [])
+                            if results:
+                                gif = random.choice(results)
+                                embed = discord.Embed(title=gif.get("title", "GIF"), color=discord.Color.random())
+                                img_url = gif.get("images", {}).get("original", {}).get("url")
+                                if img_url:
+                                    embed.set_image(url=img_url)
+                                    embed.set_footer(text="Source: Giphy")
+                                    await ctx.send(embed=embed)
+                                    logging.info("GIF fetched via Giphy")
+                                    return
+                        logging.info(f"Giphy failed or returned no results (Status: {resp.status})")
+                except Exception as e:
+                    logging.info(f"Giphy request failed: {e}")
+
+            await ctx.send("Sorry, I couldn't find any GIFs right now. Please try again later!", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Memes(bot))
