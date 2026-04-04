@@ -5,7 +5,7 @@
 <form method="POST">
     <div class="form-group">
         <label for="daily_memes">
-            <input type="checkbox" id="daily_memes" name="daily_memes" {% if settings.daily_memes %}checked{% endif %}>
+            <input type="checkbox" id="daily_memes" name="daily_memes" {% if settings and settings.get('daily_memes') %}checked{% endif %}>
             Enable Daily Memes
         </label>
     </div>
@@ -14,7 +14,7 @@
         <select id="target_channel" name="target_channel">
             <option value="">None</option>
             {% for channel in channels %}
-            <option value="{{ channel.id }}" {% if settings.target_channel_id|int == channel.id|int %}selected{% endif %}>
+            <option value="{{ channel.id }}" {% if settings and settings.get('target_channel_id')|int == channel.id|int %}selected{% endif %}>
                 #{{ channel.name }}
             </option>
             {% endfor %}
