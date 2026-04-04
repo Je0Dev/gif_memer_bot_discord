@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Home - Meme Bot{% endblock %}
+{% block content %}
+<h1>Welcome to Meme Bot Dashboard</h1>
+<p>Manage your server's meme settings, toggle daily deliveries, and pick target channels.</p>
+{% if not session.get('DISCORD_AUTH') %}
+    <a href="/login" class="btn">Login with Discord</a>
+{% else %}
+    <a href="/servers" class="btn">Go to Servers</a>
+{% endif %}
+{% endblock %}

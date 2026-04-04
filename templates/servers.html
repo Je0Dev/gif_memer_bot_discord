@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}My Servers{% endblock %}
+{% block content %}
+<h1>Your Manageable Servers</h1>
+<div class="server-list">
+    {% for guild in guilds %}
+    <div class="server-card">
+        <h3>{{ guild.name }}</h3>
+        <a href="/server/{{ guild.id }}/settings" class="btn">Manage Settings</a>
+    </div>
+    {% else %}
+    <p>No manageable servers found where the bot is currently present.</p>
+    {% endfor %}
+</div>
+{% endblock %}
