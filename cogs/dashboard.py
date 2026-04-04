@@ -1,4 +1,5 @@
 import os
+import logging
 from quart import render_template, redirect, url_for, request
 from discord.ext import commands, ipc
 
@@ -21,7 +22,11 @@ class Dashboard(commands.Cog):
 
         @self.app.route("/callback")
         async def callback():
-            await self.discord_oauth.callback()
+            try:
+                await self.discord_oauth.callback()
+            except Exception as e:
+                logging.error(f"OAuth callback failed: {e}")
+                return "Authentication failed", 400
             return redirect(url_for("servers"))
 
         @self.app.route("/servers")
@@ -29,24 +34,41 @@ class Dashboard(commands.Cog):
             if not await self.discord_oauth.authorized():
                 return redirect(url_for("login"))
             
-            user = await self.discord_oauth.fetch_user()
-            guilds = await self.discord_oauth.fetch_guilds()
-            
-            # Filter: User has Manage Server AND Bot is in the guild
-            bot_guild_ids = {g.id for g in self.bot.guilds}
-            manageable_guilds = [g for g in guilds if g.permissions.manage_guild and g.id in bot_guild_ids]
-            
-            return await render_template("servers.html", user=user, guilds=manageable_guilds)
+            try:
+                user = await self.discord_oauth.fetch_user()
+                guilds = await self.discord_oauth.fetch_guilds()
+                
+                bot_guild_ids = {g.id for g in self.bot.guilds}
+                manageable_guilds = []
+                for g in guilds:
+                    perms = getattr(g, 'permissions', 0)
+                    if isinstance(perms, int):
+                        has_manage = (perms & (1 << 5)) != 0
+                    else:
+                        has_manage = getattr(perms, 'manage_guild', False)
+                        
+                    if has_manage and g.id in bot_guild_ids:
+                        manageable_guilds.append(g)
+                
+                return await render_template("servers.html", user=user, guilds=manageable_guilds)
+            except Exception as e:
+                logging.error(f"Error fetching servers: {e}")
+                return "Failed to load servers", 500
 
         @self.app.route("/server/<int:guild_id>/settings")
         async def server_settings(guild_id):
             if not await self.discord_oauth.authorized():
                 return redirect(url_for("login"))
                 
-            # Fetch settings via IPC
-            settings = await self.ipc_client.request("get_guild_settings", guild_id=guild_id)
+            try:
+                settings = await self.ipc_client.request("get_guild_settings", guild_id=guild_id)
+                if settings.get("error"):
+                    logging.warning(f"IPC error fetching settings: {settings['error']}")
+                    settings = {"daily_memes": False, "target_channel_id": None}
+            except Exception as e:
+                logging.error(f"IPC request failed: {e}")
+                settings = {"daily_memes": False, "target_channel_id": None}
             
-            # Fetch text channels for dropdown
             guild = self.bot.get_guild(guild_id)
             channels = [{"id": c.id, "name": c.name} for c in guild.text_channels] if guild else []
             
@@ -54,12 +76,15 @@ class Dashboard(commands.Cog):
 
         @self.app.route("/server/<int:guild_id>/settings", methods=["POST"])
         async def update_settings(guild_id):
-            form = await request.form
-            daily_memes = form.get("daily_memes") == "on"
-            target_channel_id = form.get("target_channel")
-            target_channel_id = int(target_channel_id) if target_channel_id else None
-            
-            await self.ipc_client.request("update_guild_settings", guild_id=guild_id, daily_memes=daily_memes, target_channel_id=target_channel_id)
+            try:
+                form = await request.form
+                daily_memes = form.get("daily_memes") == "on"
+                target_channel_id = form.get("target_channel")
+                target_channel_id = int(target_channel_id) if target_channel_id else None
+                
+                await self.ipc_client.request("update_guild_settings", guild_id=guild_id, daily_memes=daily_memes, target_channel_id=target_channel_id)
+            except Exception as e:
+                logging.error(f"Failed to update settings: {e}")
             return redirect(url_for("server_settings", guild_id=guild_id))
 
     async def cog_load(self):
