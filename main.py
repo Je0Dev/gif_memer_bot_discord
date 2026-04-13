@@ -8,11 +8,8 @@ import discord
 from discord.ext import commands, ipc
 from dotenv import load_dotenv
 from quart import Quart
-from quart import jsonify, request
+from quart import jsonify
 from quart_cors import cors
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 
 from config import validate_environment
 from logging_config import setup_logging
@@ -21,8 +18,6 @@ load_dotenv()
 
 env_config = validate_environment()
 logger = setup_logging(log_level=env_config.log_level)
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 class MemeBot(commands.Bot):
@@ -48,6 +43,7 @@ class MemeBot(commands.Bot):
         await self.load_extension("cogs.memes")
         await self.load_extension("cogs.settings")
         await self.load_extension("cogs.dashboard")
+        await self.load_extension("cogs.voice")
         await self.tree.sync()
         logger.info("Slash commands synced.")
 
@@ -65,7 +61,6 @@ class MemeBot(commands.Bot):
 bot = MemeBot()
 
 app = Quart(__name__)
-app = limiter.init_app(app)
 app = cors(app, allow_origin="*")
 
 app.secret_key = env_config.quart_secret_key
@@ -82,11 +77,6 @@ discord_oauth = quart_discord.DiscordOAuth2Session(app)
 bot.discord_oauth = discord_oauth
 
 
-@app.errorhandler(RateLimitExceeded)
-async def rate_limit_handler(e: RateLimitExceeded, request: request) -> tuple[str, int]:
-    return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
-
-
 @app.errorhandler(Exception)
 async def handle_exception(e: Exception) -> tuple[dict, int]:
     logger.error(f"Unhandled exception: {e}", exc_info=True)
@@ -94,7 +84,6 @@ async def handle_exception(e: Exception) -> tuple[dict, int]:
 
 
 @app.route("/health")
-@limiter.limit("100/minute")
 async def health_check() -> tuple[dict, int]:
     status = {
         "status": "healthy",
@@ -105,7 +94,6 @@ async def health_check() -> tuple[dict, int]:
 
 
 @app.route("/api/guilds")
-@limiter.limit("60/minute")
 async def api_guilds() -> tuple[dict, int]:
     if not bot.is_ready():
         return {"error": "Bot not ready"}, 503

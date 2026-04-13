@@ -118,11 +118,9 @@ class Dashboard(commands.Cog):
         self.ipc_client = ipc.Client(
             secret_key=os.getenv("IPC_SECRET_KEY", "supersecretipc")
         )
-        await self.ipc_client.start()
 
     async def cog_unload(self) -> None:
-        if self.ipc_client:
-            await self.ipc_client.close()
+        pass
 
 
 async def setup(bot: commands.Bot) -> None:

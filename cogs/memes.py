@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 import aiohttp
 import discord
-from discord.app_commands import describe
 from discord.ext import commands
 
 
@@ -24,8 +23,7 @@ class Memes(commands.Cog):
     async def cog_unload(self) -> None:
         pass
 
-    @commands.hybrid_command(name="meme")
-    @describe(description="Fetch a random meme from Reddit")
+    @commands.hybrid_command(name="meme", description="Fetch a random meme from Reddit")
     async def meme(self, ctx: commands.Context[commands.Bot]) -> None:
         try:
             async with self.session.get("https://meme-api.com/gimme") as resp:
@@ -50,8 +48,7 @@ class Memes(commands.Cog):
                 "❌ An error occurred while fetching the meme.", ephemeral=True
             )
 
-    @commands.hybrid_command(name="gif")
-    @describe(description="Fetch a random or searched GIF")
+    @commands.hybrid_command(name="gif", description="Fetch a random or searched GIF")
     async def gif(
         self, ctx: commands.Context[commands.Bot], *, query: str = "trending"
     ) -> None:
@@ -96,19 +93,44 @@ class Memes(commands.Cog):
                 logging.warning(f"Giphy request failed: {e}")
             return None
 
+        async def fetch_tenor() -> tuple[dict[str, Any], str] | None:
+            try:
+                async with self.session.get(
+                    "https://tenor.googleapis.com/v2/search",
+                    params={
+                        "key": "AIzaSyAOESJm3r3tPZQdYfC7J3TqZmHtTqLkqS0",
+                        "q": query,
+                        "limit": 10,
+                    },
+                ) as resp:
+                    if resp.status == 200:
+                        data: dict[str, Any] = await resp.json()
+                        results = data.get("results", [])
+                        if results:
+                            return random.choice(results), "Tenor"
+            except Exception as e:
+                logging.warning(f"Tenor request failed: {e}")
+            return None
+
         result = await fetch_klipy()
         if not result:
             logging.info("Klipy failed or returned no results, falling back to Giphy")
             result = await fetch_giphy()
+        if not result:
+            logging.info("Giphy failed or returned no results, falling back to Tenor")
+            result = await fetch_tenor()
 
         if result:
             gif_data, provider = result
             embed = discord.Embed(
                 title=gif_data.get("title", "GIF"), color=discord.Color.random()
             )
-            img_url = gif_data.get("url") or gif_data.get("images", {}).get(
-                "original", {}
-            ).get("url")
+            if provider == "Tenor":
+                img_url = gif_data.get("media_formats", {}).get("gif")
+            elif provider == "Giphy":
+                img_url = gif_data.get("images", {}).get("original", {}).get("url")
+            else:
+                img_url = gif_data.get("url")
             if img_url:
                 embed.set_image(url=img_url)
                 embed.set_footer(text=f"Source: {provider}")
