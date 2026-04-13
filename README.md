@@ -47,8 +47,8 @@ A professional Discord bot built with `discord.py` featuring meme and GIF comman
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/meme-bot-dashboard.git
-cd meme-bot-dashboard
+git clone https://github.com/Je0Dev/gif_memer_bot_discord.git
+cd gif_memer_bot_discord
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # venv\Scripts\activate  # Windows
@@ -87,13 +87,47 @@ This starts both the Discord bot and web dashboard concurrently.
 - **Bot**: Connects to Discord and registers slash commands
 - **Dashboard**: Available at `http://localhost:5000`
 
-### 4. Invite Bot to Discord
+### 4. Invite Bot to Your Discord Server
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Select your application → OAuth2 → URL Generator
-3. Check scopes: `bot`, `applications.commands`
-4. Add permissions: `Send Messages`, `Read Message History`
-5. Use the generated URL to invite the bot
+To add this bot to your Discord server, you need to create an invite link with the correct permissions.
+
+#### Option A: Using the OAuth2 URL Generator
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Select your bot application
+3. Click **OAuth2** in the left sidebar, then **URL Generator**
+4. In the **Scopes** section, check:
+   - `bot`
+   - `applications.commands`
+5. In the **Bot Permissions** section, check:
+   - **Text Permissions**:
+     - `Send Messages`
+     - `Read Message History`
+     - `Embed Links`
+6. Copy the generated **OAuth2 URL** at the bottom
+7. Paste the URL into your browser and select which server to add the bot to
+
+#### Option B: Direct Invite Link
+
+Replace `YOUR_CLIENT_ID` with your bot's Application ID:
+
+```
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=67488832&scope=bot%20applications.commands
+```
+
+**Required Permissions:**
+| Permission | Value | Reason |
+|------------|-------|--------|
+| Send Messages | 0x800 | Bot can send meme/GIF embeds |
+| Read Message History | 0x10000 | Required for some features |
+| Embed Links | 0x4000 | Allows rich embeds |
+
+#### After Inviting the Bot
+
+Once the bot is in your server:
+1. Start the bot: `python main.py`
+2. The bot will register slash commands automatically
+3. Use `/meme` or `/gif <query>` to test
 
 ## Docker Deployment
 
