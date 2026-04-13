@@ -5,10 +5,9 @@ A professional Discord bot built with `discord.py` featuring meme and GIF comman
 ## Features
 
 ### Discord Bot
-- **Slash Commands**: Fully integrated app commands (`/meme`, `/gif`, `/join`, `/leave`, `/play`, `/pause`, `/resume`, `/stop`).
+- **Slash Commands**: Fully integrated app commands (`/meme`, `/gif`, `/gifs`,`/memes` etc.).
 - **Multi-Provider GIF System**: Fetches GIFs from Klipy, with automatic fallback to Giphy → Tenor if previous providers fail.
 - **Meme Fetching**: Retrieves random memes from Reddit via a public API.
-- **Voice Support**: Join, leave, play, pause, resume, and stop audio in voice channels.
 - **Asynchronous Architecture**: Uses `aiohttp` for fast, non-blocking web requests with proper timeout handling.
 - **Robust Error Handling**: Graceful fallbacks, user-friendly ephemeral messages, and detailed console logging.
 
@@ -273,12 +272,7 @@ discord_gif_bot/
 |---------|-------------|
 | `/meme` | Fetch a random meme from Reddit |
 | `/gif <query>` | Search for GIFs (defaults to "trending") |
-| `/join` | Join user's voice channel |
-| `/leave` | Leave current voice channel |
-| `/play <url>` | Play audio from URL |
-| `/pause` | Pause current audio |
-| `/resume` | Resume paused audio |
-| `/stop` | Stop current audio |
+| `/gifs <query><count>` | Searches and Uploads Multiple Gifs |
 
 ## Contributing
 
