@@ -5,9 +5,9 @@ A professional Discord bot built with `discord.py` featuring meme and GIF comman
 ## Features
 
 ### Discord Bot
-- **Slash Commands**: Fully integrated app commands (`/meme`, `/gif`, `/gifs`,`/memes` etc.).
+- **Slash Commands**: Fully integrated app commands (`/meme`, `/memes`, `/dankmemes`, `/me_irl`, `/wholesome`, `/memehub`, `/memesub`, `/gif`, `/gifs`, `/trending`, `/sticker`, `/random`).
 - **Multi-Provider GIF System**: Fetches GIFs from Klipy, with automatic fallback to Giphy → Tenor if previous providers fail.
-- **Meme Fetching**: Retrieves random memes from Reddit via a public API.
+- **Meme Fetching**: Retrieves random memes from Reddit via a public API (multiple subreddits: memes, dankmemes, me_irl, wholesomememes, MemeHub).
 - **Asynchronous Architecture**: Uses `aiohttp` for fast, non-blocking web requests with proper timeout handling.
 - **Robust Error Handling**: Graceful fallbacks, user-friendly ephemeral messages, and detailed console logging.
 
@@ -270,9 +270,18 @@ discord_gif_bot/
 
 | Command | Description |
 |---------|-------------|
-| `/meme` | Fetch a random meme from Reddit |
+| `/meme` | Fetch a random meme from Reddit (default: r/memes) |
+| `/memes [count]` | Fetch multiple random memes (1-10) |
+| `/dankmemes` | Fetch from r/dankmemes |
+| `/me_irl` | Fetch from r/me_irl |
+| `/wholesome` | Fetch wholesome memes from r/wholesomememes |
+| `/memehub` | Fetch from r/MemeHub |
+| `/memesub <subreddit>` | Fetch from a specific subreddit |
 | `/gif <query>` | Search for GIFs (defaults to "trending") |
-| `/gifs <query><count>` | Searches and Uploads Multiple Gifs |
+| `/gifs <query> [count]` | Fetch multiple GIFs (1-10) |
+| `/trending` | Trending GIFs from Giphy |
+| `/sticker <query>` | Search for stickers |
+| `/random [type]` | Random command (meme, gif, dankmemes, wholesome, me_irl, memehub) |
 
 ## Contributing
 
