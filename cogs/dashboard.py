@@ -11,7 +11,9 @@ class Dashboard(commands.Cog):
         self.bot = bot
         self.app: Optional[Quart] = bot.app
         self.discord_oauth = bot.discord_oauth
-        self.ipc_client: Optional[ipc.Client] = None
+        self.ipc_client = ipc.Client(
+            secret_key=os.getenv("IPC_SECRET_KEY", "supersecretipc")
+        )
         if bot.app:
             self._register_routes()
 
@@ -115,9 +117,7 @@ class Dashboard(commands.Cog):
             return redirect(url_for("server_settings", guild_id=guild_id))
 
     async def cog_load(self) -> None:
-        self.ipc_client = ipc.Client(
-            secret_key=os.getenv("IPC_SECRET_KEY", "supersecretipc")
-        )
+        pass
 
     async def cog_unload(self) -> None:
         pass
