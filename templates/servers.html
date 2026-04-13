@@ -1,15 +1,35 @@
 {% extends "base.html" %}
-{% block title %}My Servers{% endblock %}
+{% block title %}My Servers - Meme Bot{% endblock %}
 {% block content %}
-<h1>Your Manageable Servers</h1>
-<div class="server-list">
-    {% for guild in guilds %}
-    <div class="server-card">
-        <h3>{{ guild.name }}</h3>
-        <a href="/server/{{ guild.id }}/settings" class="btn">Manage Settings</a>
+<h1 style="margin-bottom: 0.5rem;">🖥️ Your Servers</h1>
+<p style="color: var(--muted); margin-bottom: 2rem;">Servers where you can manage Meme Bot</p>
+
+{% if guilds %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+        {% for guild in guilds %}
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem;">
+            {% if guild.icon %}
+                <img src="{{ guild.icon }}" alt="{{ guild.name }}" style="width: 64px; height: 64px; border-radius: 16px;">
+            {% else %}
+                <div style="width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: var(--dark);">
+                    {{ guild.name[0] }}
+                </div>
+            {% endif %}
+            <div style="flex: 1;">
+                <h3 style="margin-bottom: 0.25rem;">{{ guild.name }}</h3>
+                <p style="color: var(--muted); font-size: 0.85rem;">ID: {{ guild.id }}</p>
+            </div>
+            <a href="/server/{{ guild.id }}/settings" class="btn btn-primary">⚙️ Manage</a>
+        </div>
+        {% endfor %}
     </div>
-    {% else %}
-    <p>No manageable servers found where the bot is currently present.</p>
-    {% endfor %}
-</div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">😕</div>
+        <h2 style="margin-bottom: 0.5rem;">No Servers Found</h2>
+        <p style="color: var(--muted); margin-bottom: 1rem;">The bot is not in any server where you have "Manage Server" permissions.</p>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Make sure the bot is in your server and you have admin permissions.</p>
+        <a href="/" class="btn btn-primary">🏠 Back to Home</a>
+    </div>
+{% endif %}
 {% endblock %}

@@ -43,7 +43,6 @@ class MemeBot(commands.Bot):
         await self.load_extension("cogs.memes")
         await self.load_extension("cogs.settings")
         await self.load_extension("cogs.dashboard")
-        await self.load_extension("cogs.voice")
         await self.tree.sync()
         logger.info("Slash commands synced.")
 
